@@ -1,10 +1,11 @@
 import axios from 'axios';
+import { API_BASE_URL } from './config';
 
-// Set `VITE_API_BASE_URL` in `.env.local` if your backend is not at the default (e.g. http://localhost:8080).
-// In dev, when unset, baseURL is same-origin so Vite can proxy `/api` and avoid CORS (see vite.config.js).
+// Dev: same-origin + Vite `/api` proxy when VITE_API_BASE_URL is unset (see vite.config.js).
+// Production: direct HTTPS API (see .env.production / config.js default).
 const BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.trim() ||
-  (import.meta.env.DEV ? '' : 'http://localhost:8080');
+  (import.meta.env.DEV ? '' : API_BASE_URL);
 
 const api = axios.create({ baseURL: BASE_URL });
 

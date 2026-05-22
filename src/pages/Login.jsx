@@ -39,16 +39,16 @@ export default function Login() {
 
       if (fromServer) setError(String(fromServer));
       else if (err.code === 'ERR_NETWORK' || err.message === 'Network Error')
-        setError('Cannot reach API server. Set VITE_API_BASE_URL in .env.local to your backend URL, or run the backend and retry.');
+        setError('Cannot reach API server. Check your network or VITE_API_BASE_URL, then retry.');
       else if (status === 502 || status === 503 || status === 504)
         setError(
           'API server is unreachable or returned a gateway error (HTTP ' +
             status +
-            '). Start the backend, confirm its host/port, then set VITE_DEV_PROXY_TARGET in .env.local (dev) or VITE_API_BASE_URL (direct). Restart npm run dev after changing env.'
+            '). The API may be down or misconfigured — try again later or contact support.'
         );
       else if (status === 500)
         setError(
-          'Server error (HTTP 500). The API rejected the request internally — check the backend console/logs on port 8080 (e.g. DB connection, JWT/env config, or missing admin user).'
+          'Server error (HTTP 500). The API rejected the request internally — check credentials or try again later.'
         );
       else if (status)
         setError(`Login failed (HTTP ${status})`);

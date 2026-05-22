@@ -1,5 +1,6 @@
-import { useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import api from '../api';
+import { normalizeSounds } from '../lib/sounds';
 import { useSchool } from '../context/SchoolContext';
 
 const glass = {
@@ -15,18 +16,27 @@ export default function Sounds() {
   const [sounds, setSounds] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState('');
   const fileRef = useRef();
 
-  const load = async () => {
-    if (!selectedSchool) return;
-    const { data } = await api.get('/api/sounds', { params: { school: selectedSchool } });
-    setSounds(data);
-    setLoaded(true);
-  };
+  const load = useCallback(async () => {
+    setError('');
+    try {
+      const config = selectedSchool ? { params: { school: selectedSchool } } : {};
+      const { data } = await api.get('/api/sounds', config);
+      setSounds(normalizeSounds(data));
+    } catch (err) {
+      setSounds([]);
+      setError(err.response?.data?.error || err.message || 'Failed to load sounds');
+    } finally {
+      setLoaded(true);
+    }
+  }, [selectedSchool]);
 
   useEffect(() => {
+    setLoaded(false);
     load();
-  }, [selectedSchool]);
+  }, [load]);
 
   const upload = async e => {
     const file = e.target.files[0];
@@ -34,9 +44,11 @@ export default function Sounds() {
     setUploading(true);
     const fd = new FormData();
     fd.append('sound', file);
-    fd.append('school_name', selectedSchool);
+    if (selectedSchool) fd.append('school_name', selectedSchool);
     try {
-      await api.post('/api/sounds/upload', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      await api.post('/api/sounds/upload', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       load();
     } catch (err) {
       alert(err.response?.data?.error || 'Upload failed');
@@ -61,7 +73,6 @@ export default function Sounds() {
       className="min-h-screen relative p-4 sm:p-6 space-y-5"
       style={{ background: 'linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 50%, #ede9fe 100%)' }}
     >
-      {/* Background blobs */}
       <div
         className="fixed top-[-5%] right-[-5%] w-80 h-80 bg-blue-300 rounded-full opacity-20 blur-3xl pointer-events-none"
         style={{ animation: 'blob 10s infinite ease-in-out' }}
@@ -71,21 +82,18 @@ export default function Sounds() {
         style={{ animation: 'blob 12s infinite ease-in-out', animationDelay: '3s' }}
       />
 
-      {/* Header */}
       <div
         className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all duration-500"
-        style={{
-          ...glass,
-          
-          
-        }}
+        style={glass}
       >
         <div>
           <h1 className="text-lg sm:text-xl font-bold text-gray-800">Sound Files</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            {selectedSchool
-              ? <span className="font-medium text-indigo-600">{selectedSchool}</span>
-              : 'Select a school'}
+            {selectedSchool ? (
+              <span className="font-medium text-indigo-600">{selectedSchool}</span>
+            ) : (
+              'All schools'
+            )}
           </p>
           <p className="text-xs text-gray-500 mt-0.5">Upload and manage bell audio files</p>
         </div>
@@ -109,7 +117,12 @@ export default function Sounds() {
         />
       </div>
 
-      {/* Sound cards grid */}
+      {error && (
+        <div className="rounded-xl px-4 py-3 text-sm text-red-700 bg-red-50 border border-red-200">
+          {error}
+        </div>
+      )}
+
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {sounds.map((s, i) => (
           <div
@@ -117,8 +130,6 @@ export default function Sounds() {
             className="rounded-2xl p-4 transition-all duration-500"
             style={{
               ...glass,
-              
-              
               transitionDelay: `${i * 60}ms`,
             }}
           >
@@ -154,7 +165,7 @@ export default function Sounds() {
           </div>
         ))}
 
-        {sounds.length === 0 && loaded && (
+        {sounds.length === 0 && loaded && !error && (
           <div
             className="col-span-full rounded-2xl py-14 text-center text-sm text-gray-400"
             style={glass}

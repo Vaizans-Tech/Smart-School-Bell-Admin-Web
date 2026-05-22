@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
   const apiProxyTarget =
     env.VITE_DEV_PROXY_TARGET?.trim() ||
     env.VITE_API_BASE_URL?.trim() ||
-    'http://localhost:8080'
+    'https://api.shikkhasomoy.com'
 
   return {
     plugins: [react(), logApiProxyTarget(apiProxyTarget)],

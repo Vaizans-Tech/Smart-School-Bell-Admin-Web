@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import api from '../api';
+import { normalizeSounds } from '../lib/sounds';
 import { useSchool } from '../context/SchoolContext';
 
 const glass = {
@@ -57,7 +58,7 @@ export default function Schedules() {
       api.get('/api/sounds', { params: { school: selectedSchool } }),
     ]);
     setSchedules(s.data);
-    setSounds(snd.data);
+    setSounds(normalizeSounds(snd.data));
     setLoaded(true);
   };
 

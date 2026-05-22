@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import api from '../api';
+import { WS_ANNOUNCE_URL } from '../config';
 import { useSchool } from '../context/SchoolContext';
 
 const glass = {
@@ -25,18 +26,37 @@ export default function Announcements() {
   const [loaded, setLoaded] = useState(false);
 
 
-  const load = async () => {
+  const load = useCallback(async () => {
     if (!selectedSchool) return;
     const { data } = await api.get('/api/announcements/admin/all', {
       params: { school: selectedSchool },
     });
     setList(data);
     setLoaded(true);
-  };
+  }, [selectedSchool]);
 
   useEffect(() => {
     load();
-  }, [selectedSchool]);
+  }, [load]);
+
+  useEffect(() => {
+    if (!selectedSchool) return;
+    const token = localStorage.getItem('token');
+    if (!token) return;
+
+    const url = new URL(WS_ANNOUNCE_URL);
+    url.searchParams.set('school', selectedSchool);
+    url.searchParams.set('token', token);
+
+    const ws = new WebSocket(url.toString());
+    ws.onmessage = () => {
+      load();
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, [selectedSchool, load]);
 
   const send = async e => {
     e.preventDefault();

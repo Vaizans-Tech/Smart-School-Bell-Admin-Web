@@ -22,7 +22,7 @@ const inputStyle = {
   border: '1px solid rgba(199,210,254,0.8)',
 };
 
-const empty = { username: '', password: '', school_name: '', role: 'device' };
+const empty = { username: '', password: '', school_name: '', role: 'user' };
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -46,9 +46,14 @@ export default function Users() {
 
   const save = async () => {
     setSaving(true);
+    const payload = {
+      username: form.username?.trim(),
+      password: form.password,
+      role: form.role === 'admin' ? 'admin' : 'user',
+    };
     try {
-      if (modal === 'add') await api.post('/api/admin/users', form);
-      else await api.put(`/api/admin/users/${modal.id}`, form);
+      if (modal === 'add') await api.post('/api/admin/users', payload);
+      else await api.put(`/api/admin/users/${modal.id}`, payload);
       setModal(null);
       load();
     } catch (e) {
@@ -312,7 +317,7 @@ export default function Users() {
                 onFocus={e => (e.target.style.borderColor = 'rgba(99,102,241,0.5)')}
                 onBlur={e => (e.target.style.borderColor = 'rgba(199,210,254,0.8)')}
               >
-                <option value="device">Device (Android App)</option>
+                <option value="user">Device (Android App)</option>
                 <option value="admin">Admin (Web Panel)</option>
               </select>
             </div>
