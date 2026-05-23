@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useState, useRef } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import api from '../api';
 import { normalizeSounds } from '../lib/sounds';
-import { useSchool } from '../context/SchoolContext';
 
 const glass = {
   background: 'rgba(255,255,255,0.55)',
@@ -11,8 +10,13 @@ const glass = {
   boxShadow: '0 8px 32px rgba(99,102,241,0.08), inset 0 1px 0 rgba(255,255,255,0.9)',
 };
 
-export default function Sounds() {
-  const { selectedSchool } = useSchool();
+const fmtSize = b =>
+  b > 1024 * 1024 ? `${(b / 1024 / 1024).toFixed(1)} MB` : `${(b / 1024).toFixed(0)} KB`;
+
+/**
+ * @param {'bell'|'azan'} type
+ */
+export default function SoundLibrary({ type, title, description, accent = 'indigo' }) {
   const [sounds, setSounds] = useState([]);
   const [uploading, setUploading] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -22,8 +26,7 @@ export default function Sounds() {
   const load = useCallback(async () => {
     setError('');
     try {
-      const config = selectedSchool ? { params: { school: selectedSchool } } : {};
-      const { data } = await api.get('/api/sounds', config);
+      const { data } = await api.get(`/api/sounds/${type}`);
       setSounds(normalizeSounds(data));
     } catch (err) {
       setSounds([]);
@@ -31,7 +34,7 @@ export default function Sounds() {
     } finally {
       setLoaded(true);
     }
-  }, [selectedSchool]);
+  }, [type]);
 
   useEffect(() => {
     setLoaded(false);
@@ -44,9 +47,8 @@ export default function Sounds() {
     setUploading(true);
     const fd = new FormData();
     fd.append('sound', file);
-    if (selectedSchool) fd.append('school_name', selectedSchool);
     try {
-      await api.post('/api/sounds/upload', fd, {
+      await api.post(`/api/sounds/${type}/upload`, fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       load();
@@ -59,52 +61,37 @@ export default function Sounds() {
 
   const del = async id => {
     if (!confirm('Delete this sound?')) return;
-    await api.delete(`/api/sounds/${id}`);
-    load();
+    try {
+      await api.delete(`/api/sounds/${id}`);
+      load();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Delete failed');
+    }
   };
 
-  const fmtSize = b =>
-    b > 1024 * 1024
-      ? `${(b / 1024 / 1024).toFixed(1)} MB`
-      : `${(b / 1024).toFixed(0)} KB`;
+  const accentBtn =
+    accent === 'emerald'
+      ? { background: 'linear-gradient(135deg, #10b981, #059669)', boxShadow: '0 4px 16px rgba(16,185,129,0.35)' }
+      : { background: 'linear-gradient(135deg, #3b82f6, #6366f1)', boxShadow: '0 4px 16px rgba(99,102,241,0.35)' };
+
+  const iconBg =
+    accent === 'emerald'
+      ? { background: 'linear-gradient(135deg, #34d399, #059669)', boxShadow: '0 4px 12px rgba(16,185,129,0.35)' }
+      : { background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', boxShadow: '0 4px 12px rgba(139,92,246,0.35)' };
 
   return (
-    <div
-      className="min-h-screen relative p-4 sm:p-6 space-y-5"
-      style={{ background: 'linear-gradient(135deg, #e0e7ff 0%, #f0f4ff 50%, #ede9fe 100%)' }}
-    >
-      <div
-        className="fixed top-[-5%] right-[-5%] w-80 h-80 bg-blue-300 rounded-full opacity-20 blur-3xl pointer-events-none"
-        style={{ animation: 'blob 10s infinite ease-in-out' }}
-      />
-      <div
-        className="fixed bottom-[10%] left-[-5%] w-64 h-64 bg-indigo-300 rounded-full opacity-20 blur-3xl pointer-events-none"
-        style={{ animation: 'blob 12s infinite ease-in-out', animationDelay: '3s' }}
-      />
-
-      <div
-        className="rounded-2xl px-5 py-4 flex items-center justify-between transition-all duration-500"
-        style={glass}
-      >
+    <section className="space-y-4">
+      <div className="rounded-2xl px-5 py-4 flex items-center justify-between" style={glass}>
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-gray-800">Sound Files</h1>
-          <p className="text-xs text-gray-500 mt-0.5">
-            {selectedSchool ? (
-              <span className="font-medium text-indigo-600">{selectedSchool}</span>
-            ) : (
-              'All schools'
-            )}
-          </p>
-          <p className="text-xs text-gray-500 mt-0.5">Upload and manage bell audio files</p>
+          <h2 className="text-base sm:text-lg font-bold text-gray-800">{title}</h2>
+          <p className="text-xs text-gray-500 mt-0.5">{description}</p>
         </div>
         <button
-          onClick={() => fileRef.current.click()}
+          type="button"
+          onClick={() => fileRef.current?.click()}
           disabled={uploading}
           className="px-3 sm:px-4 py-2 text-white text-xs sm:text-sm font-medium rounded-xl disabled:opacity-60 transition-all hover:scale-105 active:scale-95"
-          style={{
-            background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
-            boxShadow: '0 4px 16px rgba(99,102,241,0.35)',
-          }}
+          style={accentBtn}
         >
           {uploading ? 'Uploading…' : '↑ Upload'}
         </button>
@@ -125,31 +112,24 @@ export default function Sounds() {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {sounds.map((s, i) => (
-          <div
-            key={s.id}
-            className="rounded-2xl p-4 transition-all duration-500"
-            style={{
-              ...glass,
-              transitionDelay: `${i * 60}ms`,
-            }}
-          >
+          <div key={s.id} className="rounded-2xl p-4" style={glass}>
             <div className="flex items-center gap-3 mb-3">
               <div
                 className="w-9 h-9 rounded-xl flex items-center justify-center text-base flex-shrink-0"
-                style={{
-                  background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-                  boxShadow: '0 4px 12px rgba(139,92,246,0.35)',
-                }}
+                style={iconBg}
               >
-                🎵
+                {type === 'azan' ? '🕌' : '🔔'}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-800 truncate">{s.original_name}</p>
+                <p className="text-xs text-gray-400 truncate">{s.filename}</p>
                 <p className="text-xs text-gray-400">{fmtSize(s.size_bytes || 0)}</p>
               </div>
               <button
+                type="button"
                 onClick={() => del(s.id)}
                 className="text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
+                aria-label="Delete sound"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
@@ -166,22 +146,11 @@ export default function Sounds() {
         ))}
 
         {sounds.length === 0 && loaded && !error && (
-          <div
-            className="col-span-full rounded-2xl py-14 text-center text-sm text-gray-400"
-            style={glass}
-          >
-            No sounds uploaded yet
+          <div className="col-span-full rounded-2xl py-10 text-center text-sm text-gray-400" style={glass}>
+            No {type} sounds uploaded yet
           </div>
         )}
       </div>
-
-      <style>{`
-        @keyframes blob {
-          0%, 100% { transform: translate(0,0) scale(1); }
-          33% { transform: translate(20px,-20px) scale(1.05); }
-          66% { transform: translate(-15px,15px) scale(0.95); }
-        }
-      `}</style>
-    </div>
+    </section>
   );
 }

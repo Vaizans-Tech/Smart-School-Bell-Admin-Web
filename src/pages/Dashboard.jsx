@@ -10,11 +10,10 @@ const glass = {
 };
 
 const statConfigs = [
-  { key: 'total_devices',       label: 'Total Devices',  icon: '📱', from: '#3b82f6', to: '#6366f1' },
-  { key: 'online_devices',      label: 'Online Now',     icon: '🟢', from: '#10b981', to: '#059669' },
-  { key: 'total_schedules',     label: 'Schedules',      icon: '🔔', from: '#f59e0b', to: '#d97706' },
-  { key: 'total_sounds',        label: 'Sounds',         icon: '🎵', from: '#8b5cf6', to: '#7c3aed' },
-  { key: 'total_announcements', label: 'Announcements',  icon: '📢', from: '#ef4444', to: '#dc2626' },
+  { key: 'total_devices',  label: 'Total Devices', icon: '📱', from: '#3b82f6', to: '#6366f1' },
+  { key: 'online_devices', label: 'Online Now',    icon: '🟢', from: '#10b981', to: '#059669' },
+  { key: 'total_users',    label: 'App Users',     icon: '👤', from: '#f59e0b', to: '#d97706' },
+  { key: 'total_sounds',   label: 'Sound Files',   icon: '🎵', from: '#8b5cf6', to: '#7c3aed' },
 ];
 
 function StatCard({ label, value, icon, from, to, index }) {

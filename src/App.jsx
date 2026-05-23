@@ -4,9 +4,8 @@ import Login from './pages/Login';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
 import Devices from './pages/Devices';
-import Schedules from './pages/Schedules';
-import Sounds from './pages/Sounds';
-import Announcements from './pages/Announcements';
+import Bell from './pages/Bell';
+import Azan from './pages/Azan';
 import Users from './pages/Users';
 
 function RequireAuth() {
@@ -21,12 +20,14 @@ export default function App() {
           <Route path="/login" element={<Login />} />
           <Route element={<RequireAuth />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/dashboard"     element={<Dashboard />} />
-            <Route path="/devices"       element={<Devices />} />
-            <Route path="/schedules"     element={<Schedules />} />
-            <Route path="/sounds"        element={<Sounds />} />
-            <Route path="/announcements" element={<Announcements />} />
-            <Route path="/users"         element={<Users />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/devices" element={<Devices />} />
+            <Route path="/bell" element={<Bell />} />
+            <Route path="/azan" element={<Azan />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/schedules" element={<Navigate to="/bell" replace />} />
+            <Route path="/sounds" element={<Navigate to="/bell" replace />} />
+            <Route path="/announcements" element={<Navigate to="/dashboard" replace />} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

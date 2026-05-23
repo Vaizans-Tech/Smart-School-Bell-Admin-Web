@@ -1,21 +1,16 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { useSchool } from '../context/SchoolContext';
-
 const nav = [
-  { to: '/dashboard',     label: 'Dashboard',    icon: '📊' },
-  { to: '/devices',       label: 'Devices',       icon: '📱' },
-  { to: '/schedules',     label: 'Schedules',     icon: '🔔' },
-  { to: '/sounds',        label: 'Sounds',        icon: '🎵' },
-  { to: '/announcements', label: 'Announcements', icon: '📢' },
-  { to: '/users',         label: 'Users',         icon: '👤' },
+  { to: '/dashboard', label: 'Dashboard', icon: '📊' },
+  { to: '/devices',   label: 'Devices',   icon: '📱' },
+  { to: '/bell',      label: 'Bell',      icon: '🔔' },
+  { to: '/azan',      label: 'Azan',      icon: '🕌' },
+  { to: '/users',     label: 'Users',     icon: '👤' },
 ];
 
 export default function Layout() {
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { schools, selectedSchool, selectSchool } = useSchool();
-
   const logout = () => { localStorage.removeItem('token'); navigate('/login'); };
   const close = () => setSidebarOpen(false);
 
@@ -51,22 +46,6 @@ export default function Layout() {
         ))}
       </nav>
       <div className="h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-400" />
-
-      {/* School selector */}
-      {schools.length > 0 && (
-        <div className="px-3 pb-3 border-t border-gray-100 pt-3">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide px-1 mb-1.5">Active School</p>
-          <select
-            value={selectedSchool}
-            onChange={e => selectSchool(e.target.value)}
-            className="w-full border border-gray-200 rounded-lg px-2.5 py-2 text-xs font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-          >
-            {schools.map(s => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-        </div>
-      )}
 
       {/* Logout */}
       <div className="p-3 border-t border-gray-100">
@@ -113,18 +92,6 @@ export default function Layout() {
             <div className="w-6 h-6 bg-blue-600 rounded-md flex items-center justify-center text-white text-xs font-bold flex-shrink-0">EK</div>
             <span className="text-sm font-semibold text-gray-800 truncate">Edukit</span>
           </div>
-          {/* School selector on mobile topbar */}
-          {schools.length > 0 && (
-            <select
-              value={selectedSchool}
-              onChange={e => selectSchool(e.target.value)}
-              className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs font-medium text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 max-w-[140px] truncate"
-            >
-              {schools.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          )}
         </header>
 
         {/* Page content */}

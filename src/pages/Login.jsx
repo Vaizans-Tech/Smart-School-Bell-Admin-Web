@@ -110,9 +110,9 @@ export default function Login() {
           {/* Feature pills */}
           <div className="flex flex-col gap-3">
             {[
-              { icon: '🔔', text: 'Automated Bell Scheduling' },
-              { icon: '📢', text: 'Real-time Announcements' },
-              { icon: '🎵', text: 'Custom Sound Management' },
+              { icon: '🔔', text: 'Bell schedules & school bell audio' },
+              { icon: '🕌', text: 'Azan prayer sound library' },
+              { icon: '📱', text: 'Device monitoring & users' },
             ].map((f, i) => (
               <div
                 key={i}
